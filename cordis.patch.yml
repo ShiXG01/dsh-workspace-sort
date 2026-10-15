@@ -1,0 +1,8 @@
+# dsh-workspace-sort bundle mount
+#
+# One `insert` of the plugin row. The host half owns the durable plugin state
+# (sort mode + pinned workspace ids) and serves it over /workspace-sort/api;
+# the client half computes and applies the order.
+- insert:
+    - id: workspace-sort
+      name: dsh-workspace-sort

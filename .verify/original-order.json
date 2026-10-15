@@ -1,0 +1,16 @@
+{
+  "deepseek": "6b825e4d-c518-4fbe-8851-e56dc1ab056c",
+  "syzh-sandworm-crawl-social": "7575f08d-abd8-474f-8fcc-382c19270892",
+  "file-downloader-light": "d973e028-19f8-4b30-8e2c-20f7aeb27940",
+  "syzh-sandworm-crawl-file-downloader": "ddafb89b-21fe-4e0c-a1b6-b1f5bf1b7ac5",
+  "supermarket-ip-monitor": "13a2d5b1-44bf-43e0-b03c-904f02203da1",
+  "supermarket-ip": "34799f9c-cc0f-45f8-b280-7d96253649d7",
+  "ds-syzh-service-api_crawler": "1c30c9f2-b2ce-4d79-bc61-27f768e40a69",
+  "ds-syzh-crawl-monitor": "fdbd8c9e-916f-4c25-96ea-89ca4644e375",
+  "ai_tools": "0a3ef610-bb4b-4965-802b-60d4c366df4b",
+  "syzh-sandworm-social-telegram": "9f010c54-f23e-4106-8031-b49223423a5f",
+  "dsh_orb": "bcc90b3b-028f-4fbc-8275-3e3294f9c66b",
+  "syzh-sandworm-probe-custom-api": "445b456c-404f-4463-a311-6ab77ee47363",
+  "syzh-sandworm-crawl-xhs": "93edcc99-0e66-44c1-9930-389fe8af275f",
+  "default-workspace": "85ec3f9a-6bbb-4b07-bb3c-4cb797c93b9a"
+}
