@@ -14,6 +14,7 @@ const assert = require('node:assert/strict')
 
 const {
   computeOrder,
+  hasPartitionViolation,
   orderFor,
   partitionByPin,
   scoreAll,
@@ -248,4 +249,21 @@ test('an unknown mode falls back to manual, the safe default', () => {
   const scores = { a: 100, b: 900 }
   assert.deepEqual(orderFor(workspaces, scores, [], undefined), ['a', 'b'])
   assert.deepEqual(orderFor(workspaces, scores, [], 'sideways'), ['a', 'b'])
+})
+
+test('hasPartitionViolation detects when unpinned workspaces precede pinned ones', () => {
+  // Pinned follows unpinned -> violation!
+  assert.equal(hasPartitionViolation(['unpinned', 'pinned'], ['pinned']), true)
+  assert.equal(hasPartitionViolation(['u1', 'p1', 'u2', 'p2'], ['p1', 'p2']), true)
+  assert.equal(hasPartitionViolation(['p1', 'u1', 'p2'], ['p1', 'p2']), true)
+
+  // Proper partition -> no violation
+  assert.equal(hasPartitionViolation(['pinned', 'unpinned'], ['pinned']), false)
+  assert.equal(hasPartitionViolation(['p1', 'p2', 'u1', 'u2'], ['p1', 'p2']), false)
+
+  // Edge cases: no pinned items or all pinned items -> no violation
+  assert.equal(hasPartitionViolation(['a', 'b', 'c'], []), false)
+  assert.equal(hasPartitionViolation(['a', 'b'], ['a', 'b']), false)
+  assert.equal(hasPartitionViolation([], ['pinned']), false)
+  assert.equal(hasPartitionViolation(null, ['pinned']), false)
 })

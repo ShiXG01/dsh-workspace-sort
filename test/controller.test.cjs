@@ -235,6 +235,12 @@ function createHarness(options) {
       for (const listener of [...workspaceListeners]) listener()
       await this.tick()
     },
+    /** Simulate the platform prepending a newly created workspace to the top. */
+    async prependWorkspace(workspaceId, sessionIds = []) {
+      items.unshift({ workspaceId, sessionIds: [...sessionIds] })
+      for (const listener of [...workspaceListeners]) listener()
+      await settle()
+    },
     dispose() {
       for (const dispose of disposers) if (typeof dispose === 'function') dispose()
     },
@@ -645,4 +651,21 @@ test('starting registers a poll, and disposal releases it', async () => {
   assert.equal(harness.clock.intervalCount(), 1)
   harness.dispose()
   assert.equal(harness.clock.intervalCount(), 0)
+})
+
+test('adding a new unpinned workspace in manual mode sinks it below pinned workspaces', async () => {
+  const harness = createHarness({
+    workspaces: [workspace('pinned1', ['s1']), workspace('unpinned1', ['s2'])],
+    summaries: { s1: summary('s1', 100), s2: summary('s2', 200) },
+    hostState: { sortMode: 'manual', pinned: ['pinned1'] },
+  })
+  await harness.start()
+  await harness.tick()
+  assert.deepEqual(harness.order(), ['pinned1', 'unpinned1'])
+
+  // Simulate DSH prepending a newly created unpinned workspace 'new_ws' to index 0:
+  await harness.prependWorkspace('new_ws')
+  // The plugin should immediately reconcile and place 'pinned1' back above 'new_ws':
+  assert.deepEqual(harness.order(), ['pinned1', 'new_ws', 'unpinned1'])
+  harness.dispose()
 })
