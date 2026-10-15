@@ -852,8 +852,8 @@ function click(element) {
   return { prevented, stopped }
 }
 
-test('the panel lists every workspace with its pin state', () => {
-  const { api, document } = load({ groupBy: 'workspace' })
+test('the panel renders mode options and sort-now button without workspace list rows', () => {
+  const { api } = load({ groupBy: 'workspace' })
   const sorter = panelSorter({
     mode: 'updated',
     rows: [
@@ -865,20 +865,18 @@ test('the panel lists every workspace with its pin state', () => {
 
   const panel = api.getPanel()
   assert.ok(panel !== null && panel !== undefined, 'the panel must be open')
-  const rows = panel.querySelectorAll('[data-dsh-ws-panel-row]')
-  assert.deepEqual(
-    rows.map((button) => button.getAttribute('data-dsh-ws-panel-row')),
-    ['w1', 'w2'],
-  )
-  assert.equal(rows[0].getAttribute('aria-pressed'), 'true')
-  assert.equal(rows[1].getAttribute('aria-pressed'), 'false')
-  assert.ok(rows[0].textContent.includes('deepseek'))
+  // Workspace rows are intentionally excluded from the footer panel to keep it concise.
+  assert.equal(panel.querySelectorAll('[data-dsh-ws-panel-row]').length, 0)
+  assert.ok(panel.textContent.includes('工作区排序方式'))
+  assert.ok(panel.textContent.includes('手动排序'))
+  assert.ok(panel.textContent.includes('最近更新'))
+  assert.ok(panel.textContent.includes('立即排序'))
   assert.deepEqual(sorter.calls, [['setPanelOpen', true]])
   api.closePanel()
   assert.equal(api.getPanel(), undefined)
 })
 
-test('the panel marks the active sort mode and switches it', () => {
+test('the panel marks the active sort mode, switches it, and closes immediately on click', () => {
   const { api } = load({ groupBy: 'workspace' })
   const sorter = panelSorter({ mode: 'manual', rows: [] })
   api.openPanel(sorter)
@@ -892,19 +890,20 @@ test('the panel marks the active sort mode and switches it', () => {
   assert.equal(updated.getAttribute('aria-pressed'), 'false')
 
   click(updated)
-  assert.deepEqual(sorter.calls, [['setPanelOpen', true], ['setMode', 'updated']])
-  api.closePanel()
+  assert.deepEqual(sorter.calls, [
+    ['setPanelOpen', true],
+    ['setMode', 'updated'],
+  ])
+  // Panel must close immediately on selection.
+  assert.equal(api.getPanel(), undefined)
 })
 
-test('a panel row toggles that workspace pin, and sort-now asks for a sort', () => {
+test('clicking sort-now triggers sortNow and closes the panel immediately', () => {
   const { api } = load({ groupBy: 'workspace' })
-  const sorter = panelSorter({
-    rows: [{ workspaceId: 'w7', title: 'ai_tools', pinned: false }],
-  })
+  const sorter = panelSorter({ rows: [] })
   api.openPanel(sorter)
   const panel = api.getPanel()
 
-  click(panel.querySelector('[data-dsh-ws-panel-row]'))
   const sortNow = panel
     .querySelectorAll('button')
     .find((button) => button.textContent === '立即排序')
@@ -912,19 +911,10 @@ test('a panel row toggles that workspace pin, and sort-now asks for a sort', () 
 
   assert.deepEqual(sorter.calls, [
     ['setPanelOpen', true],
-    ['togglePin', 'w7'],
     ['sortNow'],
   ])
-  api.closePanel()
-})
-
-test('the panel reports an empty workspace list instead of rendering nothing', () => {
-  const { api } = load({ groupBy: 'workspace' })
-  api.openPanel(panelSorter({ rows: [] }))
-  const panel = api.getPanel()
-  assert.equal(panel.querySelectorAll('[data-dsh-ws-panel-row]').length, 0)
-  assert.ok(panel.textContent.includes('暂无工作区'))
-  api.closePanel()
+  // Panel must close immediately on action click.
+  assert.equal(api.getPanel(), undefined)
 })
 
 test('opening the panel twice reuses one container, and toggling closes it', () => {
@@ -954,7 +944,8 @@ test('the panel copy follows the interface language', () => {
   const en = load({ groupBy: 'workspace', language: 'en-US' })
   en.api.openPanel(panelSorter({ rows: [] }))
   assert.ok(en.api.getPanel().textContent.includes('Workspace order'))
-  assert.ok(en.api.getPanel().textContent.includes('No workspaces'))
+  assert.ok(en.api.getPanel().textContent.includes('Manual order'))
+  assert.ok(en.api.getPanel().textContent.includes('Most recent'))
   en.api.closePanel()
 })
 
