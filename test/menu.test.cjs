@@ -134,5 +134,5 @@ test('pinStylesheet includes filled glyph rules and divider styling', () => {
   assert.ok(css.includes('data-dsh-ws-divider'))
   assert.ok(css.includes('::before'))
   assert.ok(css.includes('height:1px'))
-  assert.ok(css.includes('background:#ffffff'))
+  assert.ok(css.includes('background:currentColor'))
 })
