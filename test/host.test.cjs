@@ -63,6 +63,26 @@ function createResponse() {
 }
 
 /**
+ * Model Cordis service access: optional chaining still reads the context proxy,
+ * so a service must be declared in inject before it can be accessed.
+ */
+function createContext(services, inject, effect) {
+  const declared = new Set(inject)
+  return new Proxy(
+    { effect },
+    {
+      get(target, key, receiver) {
+        if (Reflect.has(target, key)) return Reflect.get(target, key, receiver)
+        if (!declared.has(key)) {
+          throw new Error(`cannot get property "${String(key)}" without inject`)
+        }
+        return services[key]
+      },
+    },
+  )
+}
+
+/**
  * Mount the host half and return a caller for its route.
  * @returns the mounted harness.
  */
@@ -70,18 +90,21 @@ async function mount() {
   const module = await import(pathToFileURL(join(__dirname, '..', 'lib', 'index.js')).href)
   const registrations = []
   const disposers = []
-  const ctx = {
-    webServer: {
-      register(registration) {
-        registrations.push(registration)
-        return () => {}
+  const ctx = createContext(
+    {
+      webServer: {
+        register(registration) {
+          registrations.push(registration)
+          return () => {}
+        },
       },
+      connection: { trustedHosts: ['lan.example.test:8080'] },
     },
-    webRuntime: { trustedHosts: ['lan.example.test:8080'] },
-    effect(callback) {
+    module.inject,
+    (callback) => {
       disposers.push(callback())
     },
-  }
+  )
   module.apply(ctx)
   const registration = registrations[0]
   return {
@@ -104,6 +127,18 @@ async function mount() {
   }
 }
 
+test('the context rejects undeclared service reads even with optional chaining', () => {
+  const ctx = createContext({ connection: { trustedHosts: [] } }, ['webServer'], () => {})
+  assert.throws(
+    () => ctx.connection?.trustedHosts,
+    /cannot get property "connection" without inject/,
+  )
+  assert.throws(
+    () => ctx.webRuntime?.trustedHosts,
+    /cannot get property "webRuntime" without inject/,
+  )
+})
+
 test('a damaged state file resets to defaults and is preserved for inspection', async () => {
   const host = await mount()
   const state = await host.method('state')
@@ -118,7 +153,7 @@ test('the route is registered on the plugin prefix', async () => {
   const host = await mount()
   assert.equal(host.registration.kind, 'prefix')
   assert.equal(host.registration.path, '/workspace-sort/api')
-  assert.deepEqual([...host.module.inject], ['webServer', 'webRuntime'])
+  assert.deepEqual([...host.module.inject], ['webServer', 'connection'])
   assert.equal(host.module.name, 'dsh-workspace-sort')
   host.dispose()
 })

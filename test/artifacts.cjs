@@ -30,7 +30,7 @@ main().catch((error) => {
 async function main() {
   const host = await import('../lib/index.js')
   assert.equal(host.name, 'dsh-workspace-sort')
-  assert.deepEqual([...host.inject], ['webServer', 'webRuntime'])
+  assert.deepEqual([...host.inject], ['webServer', 'connection'])
   assert.equal(typeof host.apply, 'function')
   console.log(`index.js:  name "${host.name}", inject ${JSON.stringify([...host.inject])}`)
 }

@@ -1,6 +1,6 @@
 {
   "name": "dsh-workspace-sort",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sort DSH workspaces by their most recent conversation, with workspace pinning.",
   "type": "module",
   "main": "lib/index.js",
